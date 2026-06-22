@@ -25,5 +25,5 @@ jar cf $JAR_NAME -C $BIN .
 echo "✅ $JAR_NAME créé avec succès !"
 
 # Copier dans test/lib/
-cp $JAR_NAME ../test/lib/
+cp $JAR_NAME ../../test_sprint_git/lib/
 echo "✅ Copié dans sprint-test-app/lib/"
