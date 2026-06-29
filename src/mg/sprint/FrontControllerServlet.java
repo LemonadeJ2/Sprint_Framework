@@ -1,19 +1,23 @@
 package mg.sprint;
 
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import mg.itu.annotation.controller.ControllerAnnotation;
+import mg.itu.annotation.url.UrlMapping;
 import mg.itu.util.ClassScanner;
-
-import java.io.IOException;
-import java.io.PrintWriter;
+import mg.itu.annotation.controller.ControllerAnnotation;
+import java.io.*;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 public class FrontControllerServlet extends HttpServlet {
+
     private List<Class<?>> controllers;
+    private Map<String, Map<Class<?>, List<Method>>> urlMapping;
+    private List<String> urls;
 
     @Override
     public void init() throws ServletException {
@@ -26,9 +30,12 @@ public class FrontControllerServlet extends HttpServlet {
         }
 
         try {
-            controllers = ClassScanner.getClassesByAnnotation(ControllerAnnotation.class, packageName);
+            controllers = ClassScanner.getClassesByAnnotation(packageName, ControllerAnnotation.class);
+            urlMapping = ClassScanner.getAnnotatedMethodsByUrl(ControllerAnnotation.class, packageName, UrlMapping.class);
+
+            urls = ClassScanner.ifUrlExists(packageName);
         } catch (Exception e) {
-            throw new ServletException("Erreur durant le scan des controllers", e);
+            throw new ServletException("Erreur lors du scan des controllers", e);
         }
     }
 
@@ -38,22 +45,57 @@ public class FrontControllerServlet extends HttpServlet {
         processRequest(req, resp);
     }
 
-    @Override
+    @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         processRequest(req, resp);
     }
 
-    protected void processRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void processRequest(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
-        resp.setContentType("text/html; charset=UTF-8");
+        resp.setContentType("text/html;charset=UTF-8");
         PrintWriter out = resp.getWriter();
 
-        out.println("<h2>Controllers détectés (" + controllers.size() + ")</h2>");
-        out.println("<ul>");
+        out.println("<h1>Controllers chargés au démarrage :</h1><ul>");
         for (Class<?> c : controllers) {
             out.println("<li>" + c.getName() + "</li>");
         }
+        out.println("</ul>");
+
+        String contextPath = req.getContextPath();
+
+        String requestedUrl = req.getRequestURI()
+                .substring(contextPath.length());
+
+        if (!urls.contains(requestedUrl)) {
+            throw new ServletException(
+                    "URL inconnue : " + requestedUrl
+                    + "\nURLs supportées : " + urlMapping.keySet());
+        }
+
+        Map<Class<?>, List<Method>> classMap
+                = urlMapping.get(requestedUrl);
+
+        out.println("<h2>Résultat : (url -> class -> fonction annoté)</h2>");
+        out.println("<ul>");
+
+        for (Map.Entry<Class<?>, List<Method>> entry : classMap.entrySet()) {
+
+            Class<?> controller = entry.getKey();
+
+            for (Method method : entry.getValue()) {
+
+                out.println("<li>"
+                        + requestedUrl + " → "
+                        + controller.getSimpleName()
+                        + " -> "
+                        + method.getName()
+                        + "()"
+                        + "</li>");
+            }
+        }
+
         out.println("</ul>");
     }
 }
