@@ -2,6 +2,7 @@ package mg.itu.util;
 
 import mg.itu.annotation.controller.ControllerAnnotation;
 import mg.itu.annotation.url.UrlMapping;
+import mg.itu.mapping.UrlMethode;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -53,10 +54,15 @@ public class ClassScanner {
         return annotatedClasses;
     }
 
-    public static Map<String, Map<Class<?>, List<Method>>> getAnnotatedMethodsByUrl(Class<?> controllerClass, String packageName, Class<? extends Annotation> annotationClass)
+    /*
+     * Scanne toutes les classes du package et retourne une map
+     * dont la clé est un UrlMethode (url + verbe HTTP).
+     * Permet d'avoir deux méthodes sur la même URL si leurs verbes diffèrent.
+     */
+    public static Map<UrlMethode, Map<Class<?>, List<Method>>> getAnnotatedMethodsByUrl(Class<?> controllerClass, String packageName, Class<? extends Annotation> annotationClass)
             throws ClassNotFoundException, ReflectiveOperationException {
 
-        Map<String, Map<Class<?>, List<Method>>> result = new HashMap<>();
+        Map<UrlMethode, Map<Class<?>, List<Method>>> result = new HashMap<>();
 
         List<Class<?>> classes = getClassesList(packageName);
 
@@ -68,12 +74,21 @@ public class ClassScanner {
 
                     Annotation annotation = method.getAnnotation(annotationClass);
 
+                    /* Récupère la valeur de l'URL */
                     String url = (String) annotationClass
                             .getMethod("value")
                             .invoke(annotation);
 
+                    /* Récupère le verbe HTTP (GET par défaut) */
+                    String httpMethod = (String) annotationClass
+                            .getMethod("method")
+                            .invoke(annotation);
+
+                    /* Construit la clé composée (url, méthode HTTP) */
+                    UrlMethode key = new UrlMethode(url, httpMethod);
+
                     result
-                            .computeIfAbsent(url, k -> new HashMap<>())
+                            .computeIfAbsent(key, k -> new HashMap<>())
                             .computeIfAbsent(clazz, k -> new ArrayList<>())
                             .add(method);
                 }
@@ -83,9 +98,13 @@ public class ClassScanner {
         return result;
     }
 
-    public static List<String> ifUrlExists(String packageName) throws ClassNotFoundException {
+    /*
+     * Retourne la liste de tous les UrlMethode (url + verbe) trouvés dans le package.
+     * Utile pour vérifier si un couple (url, httpMethod) est valide.
+     */
+    public static List<UrlMethode> ifUrlExists(String packageName) throws ClassNotFoundException {
 
-        List<String> urls = new ArrayList<>();
+        List<UrlMethode> urlMethodes = new ArrayList<>();
 
         List<Class<?>> classes = getClassesList(packageName);
 
@@ -96,11 +115,11 @@ public class ClassScanner {
                 UrlMapping urlMapping = method.getAnnotation(UrlMapping.class);
 
                 if (urlMapping != null) {
-                    urls.add(urlMapping.value());
+                    urlMethodes.add(new UrlMethode(urlMapping.value(), urlMapping.method()));
                 }
             }
         }
 
-        return urls;
+        return urlMethodes;
     }
 }
