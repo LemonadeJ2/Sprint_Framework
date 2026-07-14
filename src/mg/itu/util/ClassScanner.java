@@ -122,4 +122,44 @@ public class ClassScanner {
 
         return urlMethodes;
     }
+
+    public static boolean urlMethodExists(
+            Map<UrlMethode, Method> map,
+            String url,
+            String httpMethod) {
+        return map.containsKey(new UrlMethode(url, httpMethod));
+    }
+
+    public static Map<UrlMethode, Method> getUrlMethodMap(String packageName)
+            throws ClassNotFoundException {
+        Map<UrlMethode, Method> map = new HashMap<>();
+
+        List<Class<?>> controllers = getClassesByAnnotation(
+                packageName, ControllerAnnotation.class
+        );
+
+        for (Class<?> controller : controllers) {
+            for (Method method : controller.getDeclaredMethods()) {
+
+                UrlMapping urlMapping = method.getAnnotation(UrlMapping.class);
+
+                if (urlMapping != null) {
+                    String url = urlMapping.value();
+                    String httpMethod = urlMapping.method().toUpperCase();
+
+                    UrlMethode key = new UrlMethode(url, httpMethod);
+
+                    // Vérifier les doublons
+                    if (urlMethodExists(map, url, httpMethod)) {
+                        throw new IllegalStateException(
+                                "URL en double détectée : " + key
+                        );
+                    }
+
+                    map.put(key, method);
+                }
+            }
+        }
+        return map;
+    }
 }

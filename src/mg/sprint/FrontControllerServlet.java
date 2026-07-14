@@ -21,24 +21,24 @@ public class FrontControllerServlet extends HttpServlet {
     private Map<UrlMethode, Map<Class<?>, List<Method>>> urlMapping;
     private List<UrlMethode> urlMethodes;
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
+    // @Override
+    // public void init() throws ServletException {
+    //     super.init();
 
-        String packageName = getServletConfig().getInitParameter("controllerPackage");
+    //     String packageName = getServletConfig().getInitParameter("controllerPackage");
 
-        if (packageName == null || packageName.isEmpty()) {
-            packageName = "controllers";
-        }
+    //     if (packageName == null || packageName.isEmpty()) {
+    //         packageName = "controllers";
+    //     }
 
-        try {
-            controllers = ClassScanner.getClassesByAnnotation(packageName, ControllerAnnotation.class);
-            urlMapping = ClassScanner.getAnnotatedMethodsByUrl(ControllerAnnotation.class, packageName, UrlMapping.class);
-            urlMethodes = ClassScanner.ifUrlExists(packageName);
-        } catch (Exception e) {
-            throw new ServletException("Erreur lors du scan des controllers", e);
-        }
-    }
+    //     try {
+    //         controllers = ClassScanner.getClassesByAnnotation(packageName, ControllerAnnotation.class);
+    //         urlMapping = ClassScanner.getAnnotatedMethodsByUrl(ControllerAnnotation.class, packageName, UrlMapping.class);
+    //         urlMethodes = ClassScanner.ifUrlExists(packageName);
+    //     } catch (Exception e) {
+    //         throw new ServletException("Erreur lors du scan des controllers", e);
+    //     }
+    // }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -52,11 +52,6 @@ public class FrontControllerServlet extends HttpServlet {
         processRequest(req, resp);
     }
 
-    /*
-     * Traite la requête entrante.
-     * Reconstitue un UrlMethode à partir de l'URL appelée et du verbe HTTP,
-     * puis cherche la méthode correspondante dans la map de routage.
-     */
     protected void processRequest(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
