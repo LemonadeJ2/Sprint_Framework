@@ -46,7 +46,7 @@ public class ClassScanner {
         List<Class<?>> classes = getClassesList(packageName);
 
         for (Class<?> clazz : classes) {
-            if (clazz.isAnnotationPresent(annotation.asSubclass(Annotation.class))) {
+            if (clazz.isAnnotationPresent(annotation)) {
                 annotatedClasses.add(clazz);
             }
         }
