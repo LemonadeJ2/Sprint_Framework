@@ -5,7 +5,9 @@ echo "=== Compilation du framework Sprint ==="
 # Dossiers
 SRC="src"
 BIN="bin"
-LIB="lib/servlet-api.jar"
+SERVLET_API="lib/servlet-api.jar"
+JSON_LIB="lib/json-20240303.jar"
+LIB="$SERVLET_API:$JSON_LIB"
 JAR_NAME="sprint-framework-1.0.jar"
 
 # Créer le dossier de sortie
@@ -26,4 +28,6 @@ echo "✅ $JAR_NAME créé avec succès !"
 
 # Copier dans test/lib/
 cp $JAR_NAME ../../test_sprint_git/lib/
-echo "✅ Copié dans sprint-test-app/lib/"
+cp $JSON_LIB ../../test_sprint_git/lib/
+cp $SERVLET_API ../../test_sprint_git/lib/
+echo "✅ Framework + json.jar + servlet-api.jar copiés dans test_sprint_git/lib/"
