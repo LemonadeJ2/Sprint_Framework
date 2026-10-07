@@ -14,7 +14,7 @@ JAR_NAME="sprint-framework-1.0.jar"
 mkdir -p $BIN
 
 # Compiler
-javac -cp $LIB -d $BIN $(find $SRC -name "*.java")
+javac -cp $LIB -parameters -d $BIN $(find $SRC -name "*.java")
 
 if [ $? -ne 0 ]; then
     echo "❌ Erreur de compilation !"
