@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import mg.itu.annotation.webapi.WebAPI;
 import mg.itu.mapping.UrlMethode;
+import mg.itu.util.GetArgController;
 import mg.itu.util.JsonUtil;
 import mg.itu.util.ModelView;
 
@@ -58,7 +59,7 @@ public class FrontControllerServlet extends HttpServlet {
                     .getDeclaredConstructor()
                     .newInstance();
 
-            Object[] args = JsonUtil.buildArgs(method, req, resp, getServletContext());
+            Object[] args = GetArgController.buildArgs(method, req);
 
             result = method.invoke(controller, args);
 

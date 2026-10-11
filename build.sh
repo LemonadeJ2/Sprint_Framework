@@ -14,7 +14,7 @@ JAR_NAME="sprint-framework-1.0.jar"
 mkdir -p $BIN
 
 # Compiler
-javac -cp $LIB -d $BIN $(find $SRC -name "*.java")
+javac -cp $LIB -parameters -d $BIN $(find $SRC -name "*.java")
 
 if [ $? -ne 0 ]; then
     echo "❌ Erreur de compilation !"
@@ -27,7 +27,8 @@ jar cf $JAR_NAME -C $BIN .
 echo "✅ $JAR_NAME créé avec succès !"
 
 # Copier dans test/lib/
-cp $JAR_NAME ../../test_sprint_git/lib/
-cp $JSON_LIB ../../test_sprint_git/lib/
-cp $SERVLET_API ../../test_sprint_git/lib/
-echo "✅ Framework + json.jar + servlet-api.jar copiés dans test_sprint_git/lib/"
+# /home/alberto/s4/Web_dynamique(servlet_tovo)/test_sprint_git/test_sprint_git
+cp $JAR_NAME ../../test_sprint_git/test_sprint_git/lib/
+cp $JSON_LIB ../../test_sprint_git/test_sprint_git/lib/
+cp $SERVLET_API ../../test_sprint_git/test_sprint_git/lib/
+echo "✅ Framework + json.jar + servlet-api.jar copiés dans test_sprint_git/test_sprint_git/lib/"
