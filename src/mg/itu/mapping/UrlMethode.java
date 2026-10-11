@@ -15,7 +15,7 @@ public class UrlMethode {
     public UrlMethode(String url, String httpMethod) {
         this.url = url;
         this.httpMethod = httpMethod;
-    }
+    }   
 
     public String getUrl() {
         return url;
