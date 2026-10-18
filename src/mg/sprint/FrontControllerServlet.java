@@ -34,9 +34,11 @@ public class FrontControllerServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        req.setCharacterEncoding("UTF-8");
+
         /* Les routes sont enregistrées au démarrage par le FrontControllerListener */
-        Map<UrlMethode, Method> urlMethodMap =
-                (Map<UrlMethode, Method>) getServletContext().getAttribute("urlMethodMap");
+        Map<UrlMethode, Method> urlMethodMap = (Map<UrlMethode, Method>) getServletContext()
+                .getAttribute("urlMethodMap");
 
         if (urlMethodMap == null) {
             resp.sendError(500, "Le listener n'a pas initialisé les routes.");
@@ -52,6 +54,27 @@ public class FrontControllerServlet extends HttpServlet {
             return;
         }
 
+        Object[] args;
+
+        try {
+            args = GetArgController.buildArgs(method, req);
+        } catch (IllegalArgumentException e) {
+            getServletContext().log("Paramètre invalides pour" + key, e);
+
+            resp.sendError(400, "Paramètres du formulaire invalides.");
+            return ;
+        } catch (IllegalStateException e) {
+            throw new ServletException(
+                    "Impossible de traiter la requête. "
+                            + "Vérifier la configuration multipart "
+                            + "et les limites de l'application.",
+                    e);
+        } catch (ReflectiveOperationException e){
+            throw new ServletException("Impossible de construire les arguments de " + key,
+                e
+            );
+        }
+
         Object result;
 
         try {
@@ -59,7 +82,7 @@ public class FrontControllerServlet extends HttpServlet {
                     .getDeclaredConstructor()
                     .newInstance();
 
-            Object[] args = GetArgController.buildArgs(method, req);
+            // Object[] args = GetArgController.buildArgs(method, req);
 
             result = method.invoke(controller, args);
 
