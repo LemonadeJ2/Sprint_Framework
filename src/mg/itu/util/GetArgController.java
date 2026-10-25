@@ -25,8 +25,9 @@ public class GetArgController {
             Class<?> type = param[i].getType();
             String name = param[i].getName();
             // String value = req.getParameter(name);
-
-            if (type == MapFile.class) {
+            if (type == MySession.class) {
+                args[i] = new MySession(req.getSession());
+            } else if (type == MapFile.class) {
                 args[i] = buildMapFile(req, name);
 
             } else if (isSimple(type)) {
