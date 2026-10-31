@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import mg.itu.annotation.webapi.WebAPI;
 import mg.itu.mapping.UrlMethode;
+import mg.itu.util.AuthUtil;
 import mg.itu.util.GetArgController;
 import mg.itu.util.JsonUtil;
 import mg.itu.util.ModelView;
@@ -52,6 +53,29 @@ public class FrontControllerServlet extends HttpServlet {
             resp.sendError(404, "Aucune méthode annotée pour " + key
                     + "\nRoutes disponibles : " + urlMethodMap.keySet());
             return;
+        }
+
+        if (AuthUtil.isAuthRequired(method)) {
+            String sessionKey = getServletContext().getInitParameter("authSessionKey");
+            if (sessionKey == null || sessionKey.isEmpty()) {
+                sessionKey = "user";
+            }
+
+            if (!AuthUtil.isAuthenticated(req, sessionKey)) {
+                if (method.isAnnotationPresent(WebAPI.class)) {
+                    resp.sendError(401, "Authentification requise.");
+                } else {
+                    String loginUrl = getServletContext().getInitParameter("loginUrl");
+
+                    if (isValidLoginUrl(loginUrl)) {
+                        resp.sendRedirect(req.getContextPath()
+                                + req.getServletPath() + loginUrl);
+                    } else {
+                        resp.sendError(401, "Authentification requise.");
+                    }
+                }
+                return;
+            }
         }
 
         Object[] args;
@@ -131,6 +155,17 @@ public class FrontControllerServlet extends HttpServlet {
 
         req.getRequestDispatcher("/WEB-INF/views/" + mv.getView() + ".jsp")
                 .forward(req, resp);
+    }
+
+    /*
+     * loginUrl doit être un chemin relatif au mapping du servlet
+     * (ex: "/profil" pour /app/profil), jamais une URL externe.
+     */
+    private boolean isValidLoginUrl(String loginUrl) {
+        return loginUrl != null
+                && loginUrl.startsWith("/")
+                && !loginUrl.startsWith("//")
+                && !loginUrl.contains("://");
     }
 
     /*
