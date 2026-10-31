@@ -78,6 +78,19 @@ public class FrontControllerServlet extends HttpServlet {
             }
         }
 
+        String[] requiredRoles = AuthUtil.getRequiredRoles(method);
+        if (requiredRoles != null) {
+            String roleKey = getServletContext().getInitParameter("roleSessionKey");
+            if (roleKey == null || roleKey.isEmpty()) {
+                roleKey = "role";
+            }
+
+            if (!AuthUtil.hasRole(req, roleKey, requiredRoles)) {
+                resp.sendError(403, "Accès refusé : rôle insuffisant.");
+                return;
+            }
+        }
+
         Object[] args;
 
         try {
