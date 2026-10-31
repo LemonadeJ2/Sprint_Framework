@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import mg.itu.annotation.webapi.WebAPI;
 import mg.itu.mapping.UrlMethode;
 import mg.itu.util.AuthUtil;
+import mg.itu.util.ControllerRegistry;
 import mg.itu.util.GetArgController;
 import mg.itu.util.JsonUtil;
 import mg.itu.util.ModelView;
@@ -115,14 +116,14 @@ public class FrontControllerServlet extends HttpServlet {
         Object result;
 
         try {
-            Object controller = method.getDeclaringClass()
-                    .getDeclaredConstructor()
-                    .newInstance();
+            Object controller = ControllerRegistry.getInstance(method.getDeclaringClass());
 
             // Object[] args = GetArgController.buildArgs(method, req);
 
             result = method.invoke(controller, args);
 
+        } catch (IllegalStateException e) {
+            throw new ServletException("Impossible d'instancier le controller de " + key, e);
         } catch (InvocationTargetException e) {
             /* L'exception réellement levée par le controller */
             throw new ServletException("Erreur dans " + key + " : " + e.getCause().getMessage(), e.getCause());
